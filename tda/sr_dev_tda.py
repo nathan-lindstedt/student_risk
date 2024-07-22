@@ -816,7 +816,7 @@ pullm_mapper = km.KeplerMapper(verbose=0)
 pullm_l2norm = pullm_mapper.fit_transform(pullm_x_train, projection='l2norm')
 pullm_lens = np.c_[pullm_model, pullm_l2norm]
 pullm_graph = pullm_mapper.map(pullm_lens, pullm_x_train, cover = km.Cover(n_cubes = 10, perc_overlap=0.5))
-pullm_mapper.visualize(pullm_graph, path_html=f'mapper_visualization_output_{date.today()}.html')
+pullm_mapper.visualize(pullm_graph, path_html=f'pullm_mapper_visualization_output_{date.today()}.html')
 
 #%%
 # Vancouver XGBoost Random Forest tuning
@@ -843,7 +843,7 @@ vanco_mapper = km.KeplerMapper(verbose=0)
 vanco_l2norm = vanco_mapper.fit_transform(vanco_x_train, projection='l2norm')
 vanco_lens = np.c_[vanco_model, vanco_l2norm]
 vanco_graph = vanco_mapper.map(vanco_lens, vanco_x_train, cover = km.Cover(n_cubes = 10, perc_overlap=0.5))
-vanco_mapper.visualize(vanco_graph, path_html=f'mapper_visualization_output_{date.today()}.html')
+vanco_mapper.visualize(vanco_graph, path_html=f'vanco_mapper_visualization_output_{date.today()}.html')
 
 #%%
 # University XGBoost Random Forest tuning
@@ -870,4 +870,6 @@ univr_mapper = km.KeplerMapper(verbose=0)
 univr_l2norm = univr_mapper.fit_transform(univr_x_train, projection='l2norm')
 univr_lens = np.c_[univr_model, univr_l2norm]
 univr_graph = univr_mapper.map(univr_lens, univr_x_train, cover = km.Cover(n_cubes = 10, perc_overlap=0.5))
-univr_mapper.visualize(univr_graph, path_html=f'mapper_visualization_output_{date.today()}.html')
+univr_mapper.visualize(univr_graph, path_html=f'univr_mapper_visualization_output_{date.today()}.html')
+
+# %%
