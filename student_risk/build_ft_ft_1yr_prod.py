@@ -2501,8 +2501,7 @@ class DatasetBuilderProd():
 			dbms=XLSX REPLACE;
 			getnames=YES;
 			run;
-		"""
-		)
+		""")
 
 		sas.submit("""
 		proc import out=act_to_sat_math
@@ -2510,8 +2509,7 @@ class DatasetBuilderProd():
 			dbms=XLSX REPLACE;
 			getnames=YES;
 			run;
-		"""
-		)
+		""")
 
 		sas.submit("""
 		proc import out=cpi
@@ -2519,8 +2517,7 @@ class DatasetBuilderProd():
 			dbms=XLSX REPLACE;
 			getnames=YES;
 		run;
-		"""
-		)
+		""")
 
 		stop = time.perf_counter()
 		print(f"Done in {stop - start:.1f} seconds\n")
@@ -2530,7 +2527,7 @@ class DatasetBuilderProd():
 
 		sas.submit("""
 		%macro loop;
-	
+
 			%do cohort_year=&start_cohort. %to &end_cohort.;
 			
 			proc sql;
@@ -2920,7 +2917,7 @@ class DatasetBuilderProd():
 					end as split_plan,
 					lsamp_stem_flag,
 					anywhere_stem_flag
-				from &dsn..student_acad_prog_plan_vw 
+				from &dsn..student_acad_prog_plan_vw
 				where snapshot = 'census'
 					and full_acad_year = "&cohort_year."
 					and substr(strm, 4, 1) = '7'
@@ -3178,7 +3175,7 @@ class DatasetBuilderProd():
 					and aid_year = "&cohort_year."
 					and grading_basis_enrl in ('REM','RMS','RMP')
 			;quit;
-			
+
 			proc sql;
 				create table date_&cohort_year. as
 				select distinct

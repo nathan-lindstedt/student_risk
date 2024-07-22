@@ -22,6 +22,7 @@ reference_files/*.sas
 *.svg
 *.yml
 *.md
+*.html
 documentation/resources/Thumbs.db
 reference_files/dummy_encoding.ipynb
 supplemental_files/SAS_batch_nightly_my_wsu.bat
