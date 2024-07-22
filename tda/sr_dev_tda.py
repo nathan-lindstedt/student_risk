@@ -809,13 +809,14 @@ pullm_class_weight = pullm_y_train[pullm_y_train == 0].count() / pullm_y_train[p
 pullm_xgbrf = XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=pullm_class_weight, 
 								eval_metric='logloss', **pullm_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(pullm_x_train, pullm_y_train, eval_set=[(pullm_x_cv, pullm_y_cv)], early_stopping_rounds=20, verbose=False)
 pullm_model = pullm_xgbrf.predict_proba(pullm_x_train)
+pullm_model = pullm_model[:, 1]
 
 #%%
 # Pullman TDA Mapping
 pullm_mapper = km.KeplerMapper(verbose=0)
 pullm_l2norm = pullm_mapper.fit_transform(pullm_x_train, projection='l2norm')
 pullm_lens = np.c_[pullm_model, pullm_l2norm]
-pullm_graph = pullm_mapper.map(pullm_lens, pullm_x_train, cover = km.Cover(n_cubes = 10, perc_overlap=0.5))
+pullm_graph = pullm_mapper.map(pullm_lens, pullm_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.5))
 pullm_mapper.visualize(pullm_graph, path_html=f'pullm_mapper_visualization_output_{date.today()}.html')
 
 #%%
@@ -836,13 +837,14 @@ vanco_class_weight = vanco_y_train[vanco_y_train == 0].count() / vanco_y_train[v
 vanco_xgbrf = XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=vanco_class_weight, 
 								eval_metric='logloss', **vanco_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(vanco_x_train, vanco_y_train, eval_set=[(vanco_x_cv, vanco_y_cv)], early_stopping_rounds=20, verbose=False)
 vanco_model = vanco_xgbrf.predict_proba(vanco_x_train)
+vanco_model = vanco_model[:, 1]
 
 #%%
 # Vancouver TDA Mapping
 vanco_mapper = km.KeplerMapper(verbose=0)
 vanco_l2norm = vanco_mapper.fit_transform(vanco_x_train, projection='l2norm')
 vanco_lens = np.c_[vanco_model, vanco_l2norm]
-vanco_graph = vanco_mapper.map(vanco_lens, vanco_x_train, cover = km.Cover(n_cubes = 10, perc_overlap=0.5))
+vanco_graph = vanco_mapper.map(vanco_lens, vanco_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.5))
 vanco_mapper.visualize(vanco_graph, path_html=f'vanco_mapper_visualization_output_{date.today()}.html')
 
 #%%
@@ -863,13 +865,14 @@ univr_class_weight = univr_y_train[univr_y_train == 0].count() / univr_y_train[u
 univr_xgbrf = XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=univr_class_weight, 
 								eval_metric='logloss', **univr_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(univr_x_train, univr_y_train, eval_set=[(univr_x_cv, univr_y_cv)], early_stopping_rounds=20, verbose=False)
 univr_model = univr_xgbrf.predict_proba(univr_x_train)
+univr_model = univr_model[:, 1]
 
 #%%
 # University TDA Mapping
 univr_mapper = km.KeplerMapper(verbose=0)
 univr_l2norm = univr_mapper.fit_transform(univr_x_train, projection='l2norm')
 univr_lens = np.c_[univr_model, univr_l2norm]
-univr_graph = univr_mapper.map(univr_lens, univr_x_train, cover = km.Cover(n_cubes = 10, perc_overlap=0.5))
+univr_graph = univr_mapper.map(univr_lens, univr_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.5))
 univr_mapper.visualize(univr_graph, path_html=f'univr_mapper_visualization_output_{date.today()}.html')
 
 # %%
