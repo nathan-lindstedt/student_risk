@@ -27,12 +27,27 @@ import shap
 from student_risk import build_dev
 
 #%%
-# Global variables
-wsu_color = (0.596,0.117,0.196)
-wsu_cmap = sns.light_palette("#981e32",as_cmap=True)
-unwanted_vars = ['emplid','enrl_ind']
+# Global variable initialization
+strm: str = None
+outcome: str = 'term'
+top_N: int = 5
+model_descr: str = 'ft_ft_1yr'
+unwanted_vars: list = ['emplid','enrl_ind']
+
+#%%
+# Development variable initialization
+full_acad_year: int = 2024
+aid_snapshot: str = 'usnews'
+snapshot: str = 'eot'
+term_type: str = 'FAL'
+
+#%%
+# WSU branding
+wsu_color: tuple = (0.596,0.117,0.196)
+wsu_cmap = sns.light_palette('#981e32',as_cmap=True)
 plt.rcParams['figure.figsize'] = [15, 10]
 plt.rcParams['font.size'] = '24'
+plt.rcParams['axes.labelsize'] = '24'
 
 #%%
 # Global XGBoost hyperparameter initialization
@@ -43,6 +58,7 @@ subsample = 0.8
 colsample_bytree = 0.8
 colsample_bynode = 0.8
 verbose = True
+
 
 #%%
 # SAS dataset builder

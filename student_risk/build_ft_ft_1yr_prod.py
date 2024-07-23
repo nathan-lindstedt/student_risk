@@ -144,8 +144,7 @@ class DatasetBuilderProd():
 		# Create SAS macro
 		print("Create SAS macro...")
 
-		sas.submit(
-			"""
+		sas.submit("""
 		%macro loop;
 
 			%do cohort_year=&start_cohort. %to &end_cohort.;

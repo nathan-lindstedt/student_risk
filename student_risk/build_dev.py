@@ -10,7 +10,7 @@ from IPython.display import HTML
 class DatasetBuilderDev:
 
 	@staticmethod
-	def build_admissions_dev():
+	def build_admissions_dev(outcome: str, full_acad_year: int, aid_snapshot: str, snapshot: str, term_type: str) -> None:
 		
 		# Start SAS session
 		print('\nStart SAS session...')
@@ -41,11 +41,17 @@ class DatasetBuilderDev:
 		# Set macro variables
 		print('Set macro variables...')
 
+		sas.symput('outcome', outcome)
+		sas.symput('full_acad_year', full_acad_year)
+		sas.symput('aid_snapshot', aid_snapshot)
+		sas.symput('snapshot', snapshot)
+		sas.symput('term_type', term_type)
+
 		sas.submit("""
 		%let acs_lag = 2;
 		%let lag_year = 1;
 		%let end_cohort = %eval(&full_acad_year. - (2 * &lag_year.));
-		%let start_cohort = %eval(&end_cohort. - 9);
+		%let start_cohort = %eval(&end_cohort. - 8);
 		""")
 
 		print('Done\n')
@@ -1205,7 +1211,6 @@ class DatasetBuilderDev:
 					case when a.sex = 'M' then 1 
 							else 0
 					end as male,
-
 					case when a.WA_residency = 'RES' then 1
 						else 0
 					end as resident,
@@ -1219,7 +1224,6 @@ class DatasetBuilderDev:
 						when a.adm_parent2_highest_educ_lvl in ('H','I','J','K','L') then '> bach'
 							else 'missing'
 					end as parent2_highest_educ_lvl,
-
 					case when a.ipeds_ethnic_group in ('2', '3', '5', '7', 'Z') then 1 
 						else 0
 					end as underrep_minority,
@@ -1279,9 +1283,9 @@ class DatasetBuilderDev:
 					and a.enrolled = 1
 					and a.adj_admit_type_cat in ('FRSH')
 					and a.wa_residency ^= 'NON-I'
-            ;quit;
+			;quit;
 
-            proc sql;                                                                                                                            
+			proc sql;
 				create table race_detail_&cohort_year. as
 				select 
 					a.emplid,
@@ -1363,7 +1367,7 @@ class DatasetBuilderDev:
 								and xe6.ethnic_group = '3') as hispc
 					on a.emplid = hispc.emplid
 			;quit;
-		
+
 			proc sql;
 				create table need_&cohort_year. as
 				select distinct
@@ -1386,7 +1390,7 @@ class DatasetBuilderDev:
 					where aid_year = "&cohort_year."
 				group by emplid, aid_year
 			;quit;
-		
+
 			proc sql;
 				create table date_&cohort_year. as
 				select distinct
@@ -1400,7 +1404,7 @@ class DatasetBuilderDev:
 				group by emplid
 				order by emplid;
 			;quit;
-		
+
 			proc sql;
 				create table class_registration_&cohort_year. as
 				select distinct
@@ -4016,7 +4020,7 @@ class DatasetBuilderDev:
 				group by a.emplid
 			;quit;
 			
-proc sql;
+			proc sql;
 				create table class_count_&cohort_year. as
 				select distinct
 					a.emplid,

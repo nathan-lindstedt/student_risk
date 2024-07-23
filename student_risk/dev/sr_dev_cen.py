@@ -2257,15 +2257,26 @@ pullm_xgbrf_ccv = XGBClassifier(tree_method='hist', grow_policy='depthwise', min
 # 								eval_metric='logloss', **pullm_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(pullm_x_train, pullm_y_train, eval_set=[(pullm_x_cv, pullm_y_cv)], early_stopping_rounds=20, verbose=False)
 # pullm_xgbrf_ccv = CalibratedClassifierCV(pullm_xgbrf, method='isotonic', cv=5).fit(pullm_x_train, pullm_y_train)
 
-pullm_xgbrf_probs = pullm_xgbrf_ccv.predict_proba(pullm_x_train)
-pullm_xgbrf_probs = pullm_xgbrf_probs[:, 1]
-pullm_xgbrf_auc = roc_auc_score(pullm_y_train, pullm_xgbrf_probs)
+pullm_xgbrf_probs_train = pullm_xgbrf_ccv.predict_proba(pullm_x_train)
+pullm_xgbrf_probs_train = pullm_xgbrf_probs_train[:, 1]
+pullm_xgbrf_auc_train = roc_auc_score(pullm_y_train, pullm_xgbrf_probs_train)
+
+pullm_xgbrf_probs_cv = pullm_xgbrf_ccv.predict_proba(pullm_x_cv)
+pullm_xgbrf_probs_cv = pullm_xgbrf_probs_cv[:, 1]
+pullm_xgbrf_auc_cv = roc_auc_score(pullm_y_cv, pullm_xgbrf_probs_cv)
+
+pullm_xgbrf_probs_test = pullm_xgbrf_ccv.predict_proba(pullm_x_test)
+pullm_xgbrf_probs_test = pullm_xgbrf_probs_test[:, 1]
+pullm_xgbrf_auc_test = roc_auc_score(pullm_y_test, pullm_xgbrf_probs_test)
 
 print(f'\nOverall accuracy for Pullman XGB Random Forest model (training): {pullm_xgbrf_ccv.score(pullm_x_train, pullm_y_train):.4f}')
-print(f'ROC AUC for Pullman XGB Random Forest model (training): {pullm_xgbrf_auc:.4f}')
+print(f'ROC AUC for Pullman XGB Random Forest model (training): {pullm_xgbrf_auc_train:.4f}')
+print(f'Overall accuracy for Pullman XGB Random Forest model (validation): {pullm_xgbrf_ccv.score(pullm_x_cv, pullm_y_cv):.4f}')
+print(f'ROC AUC for Pullman XGB Random Forest model (validation): {pullm_xgbrf_auc_cv:.4f}')
 print(f'Overall accuracy for Pullman XGB Random Forest model (testing): {pullm_xgbrf_ccv.score(pullm_x_test, pullm_y_test):.4f}')
+print(f'ROC AUC for Pullman XGB Random Forest model (validation): {pullm_xgbrf_auc_test:.4f}')
 
-pullm_xgbrf_fpr, pullm_xgbrf_tpr, pullm_thresholds = roc_curve(pullm_y_train, pullm_xgbrf_probs, drop_intermediate=False)
+pullm_xgbrf_fpr, pullm_xgbrf_tpr, pullm_thresholds = roc_curve(pullm_y_train, pullm_xgbrf_probs_train, drop_intermediate=False)
 
 plt.plot(pullm_xgbrf_fpr, pullm_xgbrf_tpr, color=wsu_color, lw=6, label='ROC CURVE')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle='--')
@@ -2274,7 +2285,7 @@ plt.ylabel('TRUE-POSITIVE RATE (SENSITIVITY)')
 plt.title('XGBOOST ROC CURVE (TRAINING)')
 plt.show()
 
-pullm_xgbrf_y, pullm_xgbrf_x = calibration_curve(pullm_y_train, pullm_xgbrf_probs, n_bins=10)
+pullm_xgbrf_y, pullm_xgbrf_x = calibration_curve(pullm_y_train, pullm_xgbrf_probs_train, n_bins=10)
 
 plt.plot(pullm_xgbrf_y, pullm_xgbrf_x, marker = '.', color=wsu_color, lw=6, label = 'XGBoost Classifier')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle = '--', label = 'Calibrated')
@@ -2339,15 +2350,26 @@ vanco_xgbrf_ccv = XGBClassifier(tree_method='hist', grow_policy='depthwise', min
 # 								eval_metric='logloss', **vanco_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(vanco_x_train, vanco_y_train, eval_set=[(vanco_x_cv, vanco_y_cv)], early_stopping_rounds=20, verbose=False)
 # vanco_xgbrf_ccv = CalibratedClassifierCV(vanco_xgbrf, method='isotonic', cv=5).fit(vanco_x_train, vanco_y_train)
 
-vanco_xgbrf_probs = vanco_xgbrf_ccv.predict_proba(vanco_x_train)
-vanco_xgbrf_probs = vanco_xgbrf_probs[:, 1]
-vanco_xgbrf_auc = roc_auc_score(vanco_y_train, vanco_xgbrf_probs)
+vanco_xgbrf_probs_train = vanco_xgbrf_ccv.predict_proba(vanco_x_train)
+vanco_xgbrf_probs_train = vanco_xgbrf_probs_train[:, 1]
+vanco_xgbrf_auc_train = roc_auc_score(vanco_y_train, vanco_xgbrf_probs_train)
+
+vanco_xgbrf_probs_cv = vanco_xgbrf_ccv.predict_proba(vanco_x_cv)
+vanco_xgbrf_probs_cv = vanco_xgbrf_probs_cv[:, 1]
+vanco_xgbrf_auc_cv = roc_auc_score(vanco_y_cv, vanco_xgbrf_probs_cv)
+
+vanco_xgbrf_probs_test = vanco_xgbrf_ccv.predict_proba(vanco_x_test)
+vanco_xgbrf_probs_test = vanco_xgbrf_probs_test[:, 1]
+vanco_xgbrf_auc_test = roc_auc_score(vanco_y_test, vanco_xgbrf_probs_test)
 
 print(f'\nOverall accuracy for Vancouver XGB Random Forest model (training): {vanco_xgbrf_ccv.score(vanco_x_train, vanco_y_train):.4f}')
-print(f'ROC AUC for Vancouver XGB Random Forest model (training): {vanco_xgbrf_auc:.4f}')
+print(f'ROC AUC for Vancouver XGB Random Forest model (training): {vanco_xgbrf_auc_train:.4f}')
+print(f'Overall accuracy for Vancouver XGB Random Forest model (validation): {vanco_xgbrf_ccv.score(vanco_x_cv, vanco_y_cv):.4f}')
+print(f'ROC AUC for Vancouver XGB Random Forest model (validation): {vanco_xgbrf_auc_cv:.4f}')
 print(f'Overall accuracy for Vancouver XGB Random Forest model (testing): {vanco_xgbrf_ccv.score(vanco_x_test, vanco_y_test):.4f}')
+print(f'ROC AUC for Vancouver XGB Random Forest model (validation): {vanco_xgbrf_auc_test:.4f}')
 
-vanco_xgbrf_fpr, vanco_xgbrf_tpr, vanco_thresholds = roc_curve(vanco_y_train, vanco_xgbrf_probs, drop_intermediate=False)
+vanco_xgbrf_fpr, vanco_xgbrf_tpr, vanco_thresholds = roc_curve(vanco_y_train, vanco_xgbrf_probs_train, drop_intermediate=False)
 
 plt.plot(vanco_xgbrf_fpr, vanco_xgbrf_tpr, color=wsu_color, lw=6, label='ROC CURVE')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle='--')
@@ -2356,7 +2378,7 @@ plt.ylabel('TRUE-POSITIVE RATE (SENSITIVITY)')
 plt.title('XGBOOST ROC CURVE (TRAINING)')
 plt.show()
 
-vanco_xgbrf_y, vanco_xgbrf_x = calibration_curve(vanco_y_train, vanco_xgbrf_probs, n_bins=10)
+vanco_xgbrf_y, vanco_xgbrf_x = calibration_curve(vanco_y_train, vanco_xgbrf_probs_train, n_bins=10)
 
 plt.plot(vanco_xgbrf_y, vanco_xgbrf_x, marker = '.', color=wsu_color, lw=6, label = 'XGBoost Classifier')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle = '--', label = 'Calibrated')
@@ -2421,15 +2443,26 @@ trici_xgbrf_ccv = XGBClassifier(tree_method='hist', grow_policy='depthwise', min
 # 								eval_metric='logloss', **trici_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(trici_x_train, trici_y_train, eval_set=[(trici_x_cv, trici_y_cv)], early_stopping_rounds=20, verbose=False)
 # trici_xgbrf_ccv = CalibratedClassifierCV(trici_xgbrf, method='isotonic', cv=5).fit(trici_x_train, trici_y_train)
 
-trici_xgbrf_probs = trici_xgbrf_ccv.predict_proba(trici_x_train)
-trici_xgbrf_probs = trici_xgbrf_probs[:, 1]
-trici_xgbrf_auc = roc_auc_score(trici_y_train, trici_xgbrf_probs)
+trici_xgbrf_probs_train = trici_xgbrf_ccv.predict_proba(trici_x_train)
+trici_xgbrf_probs_train = trici_xgbrf_probs_train[:, 1]
+trici_xgbrf_auc_train = roc_auc_score(trici_y_train, trici_xgbrf_probs_train)
+
+trici_xgbrf_probs_cv = trici_xgbrf_ccv.predict_proba(trici_x_cv)
+trici_xgbrf_probs_cv = trici_xgbrf_probs_cv[:, 1]
+trici_xgbrf_auc_cv = roc_auc_score(trici_y_cv, trici_xgbrf_probs_cv)
+
+trici_xgbrf_probs_test = trici_xgbrf_ccv.predict_proba(trici_x_test)
+trici_xgbrf_probs_test = trici_xgbrf_probs_test[:, 1]
+trici_xgbrf_auc_test = roc_auc_score(trici_y_test, trici_xgbrf_probs_test)
 
 print(f'\nOverall accuracy for Tri-Cities XGB Random Forest model (training): {trici_xgbrf_ccv.score(trici_x_train, trici_y_train):.4f}')
-print(f'ROC AUC for Tri-Cities XGB Random Forest model (training): {trici_xgbrf_auc:.4f}')
+print(f'ROC AUC for Tri-Cities XGB Random Forest model (training): {trici_xgbrf_auc_train:.4f}')
+print(f'Overall accuracy for Tri-Cities XGB Random Forest model (validation): {trici_xgbrf_ccv.score(trici_x_cv, trici_y_cv):.4f}')
+print(f'ROC AUC for Tri-Cities XGB Random Forest model (validation): {trici_xgbrf_auc_cv:.4f}')
 print(f'Overall accuracy for Tri-Cities XGB Random Forest model (testing): {trici_xgbrf_ccv.score(trici_x_test, trici_y_test):.4f}')
+print(f'ROC AUC for Tri-Cities XGB Random Forest model (validation): {trici_xgbrf_auc_test:.4f}')
 
-trici_xgbrf_fpr, trici_xgbrf_tpr, trici_thresholds = roc_curve(trici_y_train, trici_xgbrf_probs, drop_intermediate=False)
+trici_xgbrf_fpr, trici_xgbrf_tpr, trici_thresholds = roc_curve(trici_y_train, trici_xgbrf_probs_train, drop_intermediate=False)
 
 plt.plot(trici_xgbrf_fpr, trici_xgbrf_tpr, color=wsu_color, lw=6, label='ROC CURVE')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle='--')
@@ -2438,7 +2471,7 @@ plt.ylabel('TRUE-POSITIVE RATE (SENSITIVITY)')
 plt.title('XGBOOST ROC CURVE (TRAINING)')
 plt.show()
 
-trici_xgbrf_y, trici_xgbrf_x = calibration_curve(trici_y_train, trici_xgbrf_probs, n_bins=10)
+trici_xgbrf_y, trici_xgbrf_x = calibration_curve(trici_y_train, trici_xgbrf_probs_train, n_bins=10)
 
 plt.plot(trici_xgbrf_y, trici_xgbrf_x, marker = '.', color=wsu_color, lw=6, label = 'XGBoost Classifier')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle = '--', label = 'Calibrated')
@@ -2503,15 +2536,26 @@ univr_xgbrf_ccv = XGBClassifier(tree_method='hist', grow_policy='depthwise', min
 # 								eval_metric='logloss', **univr_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(univr_x_train, univr_y_train, eval_set=[(univr_x_cv, univr_y_cv)], early_stopping_rounds=20, verbose=False)
 # univr_xgbrf_ccv = CalibratedClassifierCV(univr_xgbrf, method='isotonic', cv=5).fit(univr_x_train, univr_y_train)
 
-univr_xgbrf_probs = univr_xgbrf_ccv.predict_proba(univr_x_train)
-univr_xgbrf_probs = univr_xgbrf_probs[:, 1]
-univr_xgbrf_auc = roc_auc_score(univr_y_train, univr_xgbrf_probs)
+univr_xgbrf_probs_train = univr_xgbrf_ccv.predict_proba(univr_x_train)
+univr_xgbrf_probs_train = univr_xgbrf_probs_train[:, 1]
+univr_xgbrf_auc_train = roc_auc_score(univr_y_train, univr_xgbrf_probs_train)
+
+univr_xgbrf_probs_cv = univr_xgbrf_ccv.predict_proba(univr_x_cv)
+univr_xgbrf_probs_cv = univr_xgbrf_probs_cv[:, 1]
+univr_xgbrf_auc_cv = roc_auc_score(univr_y_cv, univr_xgbrf_probs_cv)
+
+univr_xgbrf_probs_test = univr_xgbrf_ccv.predict_proba(univr_x_test)
+univr_xgbrf_probs_test = univr_xgbrf_probs_test[:, 1]
+univr_xgbrf_auc_test = roc_auc_score(univr_y_test, univr_xgbrf_probs_test)
 
 print(f'\nOverall accuracy for University XGB Random Forest model (training): {univr_xgbrf_ccv.score(univr_x_train, univr_y_train):.4f}')
-print(f'ROC AUC for University XGB Random Forest model (training): {univr_xgbrf_auc:.4f}')
+print(f'ROC AUC for University XGB Random Forest model (training): {univr_xgbrf_auc_train:.4f}')
+print(f'Overall accuracy for University XGB Random Forest model (validation): {univr_xgbrf_ccv.score(univr_x_cv, univr_y_cv):.4f}')
+print(f'ROC AUC for University XGB Random Forest model (validation): {univr_xgbrf_auc_cv:.4f}')
 print(f'Overall accuracy for University XGB Random Forest model (testing): {univr_xgbrf_ccv.score(univr_x_test, univr_y_test):.4f}')
+print(f'ROC AUC for University XGB Random Forest model (validation): {univr_xgbrf_auc_test:.4f}')
 
-univr_xgbrf_fpr, univr_xgbrf_tpr, univr_thresholds = roc_curve(univr_y_train, univr_xgbrf_probs, drop_intermediate=False)
+univr_xgbrf_fpr, univr_xgbrf_tpr, univr_thresholds = roc_curve(univr_y_train, univr_xgbrf_probs_train, drop_intermediate=False)
 
 plt.plot(univr_xgbrf_fpr, univr_xgbrf_tpr, color=wsu_color, lw=6, label='ROC CURVE')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle='--')
@@ -2520,7 +2564,7 @@ plt.ylabel('TRUE-POSITIVE RATE (SENSITIVITY)')
 plt.title('XGBOOST ROC CURVE (TRAINING)')
 plt.show()
 
-univr_xgbrf_y, univr_xgbrf_x = calibration_curve(univr_y_train, univr_xgbrf_probs, n_bins=10)
+univr_xgbrf_y, univr_xgbrf_x = calibration_curve(univr_y_train, univr_xgbrf_probs_train, n_bins=10)
 
 plt.plot(univr_xgbrf_y, univr_xgbrf_x, marker = '.', color=wsu_color, lw=6, label = 'XGBoost Classifier')
 plt.plot([0, 1], [0, 1], color='black', lw=6, linestyle = '--', label = 'Calibrated')
