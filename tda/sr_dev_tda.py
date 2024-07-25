@@ -885,7 +885,7 @@ pullm_proj = projector.decision_function(pullm_x_train)
 #%%
 # Pullman TDA Mapping
 pullm_mapper = km.KeplerMapper(verbose=2)
-pullm_cluster = pullm_mapper.fit_transform(pullm_x_train, projection=TSNE())
+pullm_cluster = pullm_mapper.fit_transform(pullm_x_train, projection='l2norm')
 pullm_lens = np.c_[pullm_proj, pullm_cluster]
 pullm_graph = pullm_mapper.map(pullm_lens, pullm_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.50), clusterer=cluster.AgglomerativeClustering(2))
 pullm_mapper.visualize(pullm_graph, custom_tooltips=pullm_id, color_values=pullm_y_train, color_function_name="target", X=pullm_x_train, X_names=pullm_feat_names, path_html=f'pullm_mapper_visualization_output_{date.today()}.html')
@@ -899,7 +899,7 @@ vanco_proj = projector.decision_function(vanco_x_train)
 #%%
 # Vanouver TDA Mapping
 vanco_mapper = km.KeplerMapper(verbose=2)
-vanco_cluster = vanco_mapper.fit_transform(vanco_x_train, projection=TSNE())
+vanco_cluster = vanco_mapper.fit_transform(vanco_x_train, projection='l2norm')
 vanco_lens = np.c_[vanco_proj, vanco_cluster]
 vanco_graph = vanco_mapper.map(vanco_lens, vanco_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.50), clusterer=cluster.AgglomerativeClustering(2))
 vanco_mapper.visualize(vanco_graph, custom_tooltips=vanco_id, color_values=vanco_y_train, color_function_name="target", X=vanco_x_train, X_names=vanco_feat_names, path_html=f'vanco_mapper_visualization_output_{date.today()}.html')
@@ -913,7 +913,7 @@ univr_proj = projector.decision_function(univr_x_train)
 #%%
 # University TDA Mapping
 univr_mapper = km.KeplerMapper(verbose=2)
-univr_cluster = univr_mapper.fit_transform(univr_x_train, projection=TSNE())
+univr_cluster = univr_mapper.fit_transform(univr_x_train, projection='l2norm')
 univr_lens = np.c_[univr_proj, univr_cluster]
 univr_graph = univr_mapper.map(univr_lens, univr_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.50), clusterer=cluster.AgglomerativeClustering(2))
 univr_mapper.visualize(univr_graph, custom_tooltips=univr_id, color_values=univr_y_train, color_function_name="target", X=univr_x_train, X_names=univr_feat_names, path_html=f'univr_mapper_visualization_output_{date.today()}.html')
