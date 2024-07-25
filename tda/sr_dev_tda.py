@@ -5,15 +5,21 @@ import numpy as np
 import pandas as pd
 import sklearn
 import umap
+from patsy.highlevel import dmatrices
+from sklearn import cluster
 from sklearn import ensemble
 from sklearn.compose import make_column_transformer
+from sklearn.decomposition import PCA
 from sklearn.ensemble import VotingClassifier
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.manifold import TSNE
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, precision_score, recall_score, confusion_matrix, roc_auc_score, roc_curve
 from sklearn.model_selection import HalvingGridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from statsmodels.discrete.discrete_model import Logit
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from xgboost import XGBClassifier
 
 from student_risk import build_dev, config, helper_funcs
@@ -650,6 +656,7 @@ univr_logit_df, univr_validation_set, univr_training_set, univr_testing_set, uni
 print('\nDetect and remove outliers...')
 
 # Pullman outliers
+pullm_id = np.array(pullm_training_set['emplid'].astype('int').to_list())
 pullm_x_training_outlier = pullm_training_set.drop(columns=['enrl_ind','emplid'])
 pullm_x_validation_outlier = pullm_validation_set.drop(columns=['enrl_ind','emplid'])
 
@@ -667,6 +674,7 @@ pullm_validation_set, pullm_training_set = helper_funcs.remove_outliers(pullm_va
 
 #%%
 # Vancouver outliers
+vanco_id = np.array(vanco_training_set['emplid'].astype('int').to_list())
 vanco_x_training_outlier = vanco_training_set.drop(columns=['enrl_ind','emplid'])
 vanco_x_validation_outlier = vanco_validation_set.drop(columns=['enrl_ind','emplid'])
 
@@ -684,6 +692,7 @@ vanco_validation_set, vanco_training_set = helper_funcs.remove_outliers(vanco_va
 
 #%%
 # University outliers
+univr_id = np.array(univr_training_set['emplid'].astype('int').to_list())
 univr_x_training_outlier = univr_training_set.drop(columns=['enrl_ind','emplid'])
 univr_x_validation_outlier = univr_validation_set.drop(columns=['enrl_ind','emplid'])
 
@@ -790,89 +799,121 @@ univr_feat_names: list = []
 univr_x_train, univr_x_cv, univr_y_train, univr_y_cv = helper_funcs.tomek_undersample(univr_validation_set, univr_training_set, univr_x_train, univr_x_cv, univr_y_train, univr_y_cv, univr_tomek_prep, univr_feat_names, 'univr', model_descr)
 
 #%%
-# XGBoost Random Forest model
+# Standard logistic model
 
-# Pullman XGBoost Random Forest tuning
-pullm_class_weight = pullm_y_train[pullm_y_train == 0].count() / pullm_y_train[pullm_y_train == 1].count()
-pullm_hyperparameters = [{'max_depth': np.linspace(1, 16, 16, dtype=int, endpoint=True),
-						'gamma': np.linspace(1, 16, 16, dtype=int, endpoint=True),
-						'learning_rate': [0.01, 0.5, 1.0]}]
+# Pullman standard model
+print('\nStandard logistic model for Pullman freshmen...\n')
 
-pullm_gridsearch = HalvingGridSearchCV(XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=pullm_class_weight, eval_metric='logloss', use_label_encoder=False, n_jobs=-1), pullm_hyperparameters, resource='n_estimators', factor=3, min_resources=2, max_resources=500, scoring='roc_auc', cv=3, aggressive_elimination=True, verbose=verbose, n_jobs=-1)
-pullm_best_model = pullm_gridsearch.fit(pullm_x_train, pullm_y_train)
+try:
+	pullm_y, pullm_x = dmatrices('enrl_ind ~ ' + ' + '.join(pullm_x_vars), data=pullm_logit_df, return_type='dataframe')
 
-print(f'Best parameters: {pullm_gridsearch.best_params_}')
+	pullm_logit_mod = Logit(pullm_y, pullm_x)
+	pullm_logit_res = pullm_logit_mod.fit(maxiter=500, method='bfgs')
+	print(pullm_logit_res.summary())
+
+	# Pullman VIF
+	print('\nVIF for Pullman...\n')
+	pullm_vif = pd.DataFrame()
+	pullm_vif['vif factor'] = [variance_inflation_factor(pullm_x.values, i) for i in range(pullm_x.shape[1])]
+	pullm_vif['features'] = pullm_x.columns
+	pullm_vif.sort_values(by=['vif factor'], ascending=False, inplace=True, ignore_index=True)
+	print(pullm_vif.round(1).to_string())
+	print('\n')
+	
+except:
+	print('Failed to converge or model misspecification: Linear combination, singular matrix, divide by zero, or separation\n')
+
+print('\n')
 
 #%%
-# Pullman XGB Random Forest
-pullm_class_weight = pullm_y_train[pullm_y_train == 0].count() / pullm_y_train[pullm_y_train == 1].count()
-pullm_xgbrf = XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=pullm_class_weight, 
-								eval_metric='logloss', **pullm_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(pullm_x_train, pullm_y_train, eval_set=[(pullm_x_cv, pullm_y_cv)], early_stopping_rounds=20, verbose=False)
-pullm_model = pullm_xgbrf.predict_proba(pullm_x_train)
-pullm_model = pullm_model[:, 1]
+# Vancouver standard model
+print('\nStandard logistic model for Vancouver freshmen...\n')
+
+try:
+	vanco_y, vanco_x = dmatrices('enrl_ind ~ ' + ' + '.join(vanco_x_vars), data=vanco_logit_df, return_type='dataframe')
+
+	vanco_logit_mod = Logit(vanco_y, vanco_x)
+	vanco_logit_res = vanco_logit_mod.fit(maxiter=500, method='bfgs')
+	print(vanco_logit_res.summary())
+
+	# Vancouver VIF
+	print('\nVIF for Vancouver...\n')
+	vanco_vif = pd.DataFrame()
+	vanco_vif['vif factor'] = [variance_inflation_factor(vanco_x.values, i) for i in range(vanco_x.shape[1])]
+	vanco_vif['features'] = vanco_x.columns
+	vanco_vif.sort_values(by=['vif factor'], ascending=False, inplace=True, ignore_index=True)
+	print(vanco_vif.round(1).to_string())
+	print('\n')
+
+except:
+	print('\nFailed to converge or model misspecification: Linear combination, singular matrix, divide by zero, or separation')
+
+print('\n')
+
+#%%
+# University standard model
+print('\nStandard logistic model for University freshmen...\n')
+
+try:
+	univr_y, univr_x = dmatrices('enrl_ind ~ ' + ' + '.join(univr_x_vars), data=univr_logit_df, return_type='dataframe')
+
+	univr_logit_mod = Logit(univr_y, univr_x)
+	univr_logit_res = univr_logit_mod.fit(maxiter=500, method='bfgs')
+	print(univr_logit_res.summary())
+
+	# University VIF
+	print('\nVIF for University...\n')
+	univr_vif = pd.DataFrame()
+	univr_vif['vif factor'] = [variance_inflation_factor(univr_x.values, i) for i in range(univr_x.shape[1])]
+	univr_vif['features'] = univr_x.columns
+	univr_vif.sort_values(by=['vif factor'], ascending=False, inplace=True, ignore_index=True)
+	print(univr_vif.round(1).to_string())
+	print('\n')
+except:
+	print('Failed to converge or model misspecification: Linear combination, singular matrix, divide by zero, or separation\n')
+
+print('\n')
+
+#%%
+# Topological Data Analysis
+
+# Pullman Isolation Forest Lens
+projector = ensemble.IsolationForest(random_state=0, n_jobs=-1)
+projector.fit(pullm_x_train)
+pullm_proj = projector.decision_function(pullm_x_train)
 
 #%%
 # Pullman TDA Mapping
-pullm_mapper = km.KeplerMapper(verbose=0)
-pullm_l2norm = pullm_mapper.fit_transform(pullm_x_train, projection='l2norm')
-pullm_lens = np.c_[pullm_model, pullm_l2norm]
-pullm_graph = pullm_mapper.map(pullm_lens, pullm_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.5))
-pullm_mapper.visualize(pullm_graph, path_html=f'pullm_mapper_visualization_output_{date.today()}.html')
+pullm_mapper = km.KeplerMapper(verbose=2)
+pullm_cluster = pullm_mapper.fit_transform(pullm_x_train, projection=TSNE())
+pullm_lens = np.c_[pullm_proj, pullm_cluster]
+pullm_graph = pullm_mapper.map(pullm_lens, pullm_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.50), clusterer=cluster.AgglomerativeClustering(2))
+pullm_mapper.visualize(pullm_graph, custom_tooltips=pullm_id, color_values=pullm_y_train, color_function_name="target", X=pullm_x_train, X_names=pullm_feat_names, path_html=f'pullm_mapper_visualization_output_{date.today()}.html')
 
 #%%
-# Vancouver XGBoost Random Forest tuning
-vanco_class_weight = vanco_y_train[vanco_y_train == 0].count() / vanco_y_train[vanco_y_train == 1].count()
-vanco_hyperparameters = [{'max_depth': np.linspace(1, 16, 16, dtype=int, endpoint=True),
-						'gamma': np.linspace(1, 16, 16, dtype=int, endpoint=True),
-						'learning_rate': [0.01, 0.5, 1.0]}]
-
-vanco_gridsearch = HalvingGridSearchCV(XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=vanco_class_weight, eval_metric='logloss', use_label_encoder=False, n_jobs=-1), vanco_hyperparameters, resource='n_estimators', factor=3, min_resources=2, max_resources=500, scoring='roc_auc', cv=3, aggressive_elimination=True, verbose=verbose, n_jobs=-1)
-vanco_best_model = vanco_gridsearch.fit(vanco_x_train, vanco_y_train)
-
-print(f'Best parameters: {vanco_gridsearch.best_params_}')
+# Vanouver Isolation Forest Lens
+projector = ensemble.IsolationForest(random_state=0, n_jobs=-1)
+projector.fit(vanco_x_train)
+vanco_proj = projector.decision_function(vanco_x_train)
 
 #%%
-# Vancouver XGB Random Forest
-vanco_class_weight = vanco_y_train[vanco_y_train == 0].count() / vanco_y_train[vanco_y_train == 1].count()
-vanco_xgbrf = XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=vanco_class_weight, 
-								eval_metric='logloss', **vanco_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(vanco_x_train, vanco_y_train, eval_set=[(vanco_x_cv, vanco_y_cv)], early_stopping_rounds=20, verbose=False)
-vanco_model = vanco_xgbrf.predict_proba(vanco_x_train)
-vanco_model = vanco_model[:, 1]
+# Vanouver TDA Mapping
+vanco_mapper = km.KeplerMapper(verbose=2)
+vanco_cluster = vanco_mapper.fit_transform(vanco_x_train, projection=TSNE())
+vanco_lens = np.c_[vanco_proj, vanco_cluster]
+vanco_graph = vanco_mapper.map(vanco_lens, vanco_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.50), clusterer=cluster.AgglomerativeClustering(2))
+vanco_mapper.visualize(vanco_graph, custom_tooltips=vanco_id, color_values=vanco_y_train, color_function_name="target", X=vanco_x_train, X_names=vanco_feat_names, path_html=f'vanco_mapper_visualization_output_{date.today()}.html')
 
 #%%
-# Vancouver TDA Mapping
-vanco_mapper = km.KeplerMapper(verbose=0)
-vanco_l2norm = vanco_mapper.fit_transform(vanco_x_train, projection='l2norm')
-vanco_lens = np.c_[vanco_model, vanco_l2norm]
-vanco_graph = vanco_mapper.map(vanco_lens, vanco_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.5))
-vanco_mapper.visualize(vanco_graph, path_html=f'vanco_mapper_visualization_output_{date.today()}.html')
-
-#%%
-# University XGBoost Random Forest tuning
-univr_class_weight = univr_y_train[univr_y_train == 0].count() / univr_y_train[univr_y_train == 1].count()
-univr_hyperparameters = [{'max_depth': np.linspace(1, 16, 16, dtype=int, endpoint=True),
-						'gamma': np.linspace(1, 16, 16, dtype=int, endpoint=True),
-						'learning_rate': [0.01, 0.5, 1.0]}]
-
-univr_gridsearch = HalvingGridSearchCV(XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=univr_class_weight, eval_metric='logloss', use_label_encoder=False, n_jobs=-1), univr_hyperparameters, resource='n_estimators', factor=3, min_resources=2, max_resources=500, scoring='roc_auc', cv=3, aggressive_elimination=True, verbose=verbose, n_jobs=-1)
-univr_best_model = univr_gridsearch.fit(univr_x_train, univr_y_train)
-
-print(f'Best parameters: {univr_gridsearch.best_params_}')
-
-#%%
-# University XGB Random Forest
-univr_class_weight = univr_y_train[univr_y_train == 0].count() / univr_y_train[univr_y_train == 1].count()
-univr_xgbrf = XGBClassifier(tree_method='hist', grow_policy='depthwise', min_child_weight=min_child_weight, max_bin=max_bin, num_parallel_tree=num_parallel_tree, subsample=subsample, colsample_bytree=colsample_bytree, colsample_bynode=colsample_bynode, scale_pos_weight=univr_class_weight, 
-								eval_metric='logloss', **univr_gridsearch.best_params_, use_label_encoder=False, n_jobs=-1).fit(univr_x_train, univr_y_train, eval_set=[(univr_x_cv, univr_y_cv)], early_stopping_rounds=20, verbose=False)
-univr_model = univr_xgbrf.predict_proba(univr_x_train)
-univr_model = univr_model[:, 1]
+# University Isolation Forest Lens
+projector = ensemble.IsolationForest(random_state=0, n_jobs=-1)
+projector.fit(univr_x_train)
+univr_proj = projector.decision_function(univr_x_train)
 
 #%%
 # University TDA Mapping
-univr_mapper = km.KeplerMapper(verbose=0)
-univr_l2norm = univr_mapper.fit_transform(univr_x_train, projection='l2norm')
-univr_lens = np.c_[univr_model, univr_l2norm]
-univr_graph = univr_mapper.map(univr_lens, univr_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.5))
-univr_mapper.visualize(univr_graph, path_html=f'univr_mapper_visualization_output_{date.today()}.html')
-
-# %%
+univr_mapper = km.KeplerMapper(verbose=2)
+univr_cluster = univr_mapper.fit_transform(univr_x_train, projection=TSNE())
+univr_lens = np.c_[univr_proj, univr_cluster]
+univr_graph = univr_mapper.map(univr_lens, univr_x_train, cover=km.Cover(n_cubes=10, perc_overlap=0.50), clusterer=cluster.AgglomerativeClustering(2))
+univr_mapper.visualize(univr_graph, custom_tooltips=univr_id, color_values=univr_y_train, color_function_name="target", X=univr_x_train, X_names=univr_feat_names, path_html=f'univr_mapper_visualization_output_{date.today()}.html')

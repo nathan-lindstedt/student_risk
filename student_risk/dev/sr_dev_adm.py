@@ -37,8 +37,8 @@ unwanted_vars: list = ['emplid','enrl_ind']
 #%%
 # Development variable initialization
 full_acad_year: int = 2024
-aid_snapshot: str = 'usnews'
-snapshot: str = 'eot'
+aid_snapshot: str = 'yrprmay'
+snapshot: str = 'census'
 term_type: str = 'FAL'
 
 #%%
@@ -59,10 +59,9 @@ colsample_bytree = 0.8
 colsample_bynode = 0.8
 verbose = True
 
-
 #%%
 # SAS dataset builder
-build_dev.DatasetBuilderDev.build_admissions_dev()
+build_dev.DatasetBuilderDev.build_admissions_dev(outcome, full_acad_year, aid_snapshot, snapshot, term_type)
 
 #%%
 # Import pre-split data
