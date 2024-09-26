@@ -98,19 +98,19 @@ else:
 	proc sql;
 		select distinct
 			max(case when snapshot = 'census' 	then 1
-				when snapshot = 'midterm' 		then 2
-				when snapshot = 'eot'			then 3
-												else 0
-												end) as snap_order
+				when snapshot = 'midterm' 	then 2
+				when snapshot = 'eot'		then 3
+								else 0
+								end) as snap_order
 			into: snap_check
 			separated by ''
 		from &dsn..class_registration
 			where acad_career = 'UGRD'
 				and strm = (select distinct
-								max(strm)
-							from &dsn..class_registration_vw 
-							where acad_career = 'UGRD'
-							and substr(strm,4,1) ^= '9')
+							max(strm)
+						from &dsn..class_registration_vw 
+						where acad_career = 'UGRD'
+						and substr(strm,4,1) ^= '9')
 	;quit;
 	""")
 
