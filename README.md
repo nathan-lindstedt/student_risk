@@ -8,4 +8,4 @@ The impending enrollment crunch, stemming from a reduced college-age population,
 ![confusion_matrix](images/confusion_matrix.png)
 Figure 1. Confusion matrix by date of XGBoost predictive Student Success Model (SSM)\*
 
-\*Note: Inconsistent population size due to 1,505 additional transfer students added to the predictive model on October 19, 2022 (for a total N of 9,999 first-time and transfer students).
+\* Note: Inconsistent population size due to 1,505 additional transfer students added to the predictive model on October 19, 2022 (for a total N of 9,999 first-time and transfer students).
