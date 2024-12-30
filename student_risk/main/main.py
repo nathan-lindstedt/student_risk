@@ -17,7 +17,7 @@ from student_risk import config
 start = time.perf_counter()
 
 #%%
-# Establish connection to SAS
+# Establish connection to SAS and create academic calendar for time-sensitive scripts
 sas = saspy.SASsession()
 
 sas.submit("""
