@@ -1,4 +1,5 @@
 #%%
+# Import libraries
 import os
 import runpy
 import sys
@@ -12,9 +13,11 @@ import saspy
 from student_risk import config
 
 #%%
+# Start timer
 start = time.perf_counter()
 
 #%%
+# Establish connection to SAS
 sas = saspy.SASsession()
 
 sas.submit("""
@@ -102,6 +105,7 @@ term_begin_dt = datetime.strptime(str(sas.symget('term_begin_dt')), '%m-%d-%Y').
 sas.endsas()
 
 #%%
+# Custom logger to write to log file
 class Logger(object):
 	def __init__(self):
 		self.terminal = sys.stdout
@@ -117,6 +121,7 @@ class Logger(object):
 
 
 #%%
+# Main entry point
 if __name__ == '__main__':
 
 	if date.today() == term_begin_dt or date.today().weekday() == 5:
